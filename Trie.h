@@ -3,7 +3,6 @@
 #include <iostream>
 #include <queue>
 #include <string>
-#include <unordered_map>
 
 using namespace std;
 
@@ -29,7 +28,7 @@ class Trie {
 private:
     struct Node {
         size_t end = 0;
-        unordered_map<char, Node*> children;
+        Node* children[26] = { 0 }; // Only supporting lower case as of now
     };
 
     Node* root;
@@ -39,14 +38,12 @@ private:
             return;
         }
 
-        auto first_char = word[start];
-        auto it = head->children.find(first_char);
-        Node* node;
-        if (it != head->children.end()) {
-            node = it->second;
-        } else {
+        auto first_char_idx = word[start] - 'a';
+
+        Node* node = head->children[first_char_idx];
+        if (node == nullptr) {
             node = new Node();
-            head->children[first_char] = node;
+            head->children[first_char_idx] = node;
         }
         if (start + 1 >= word.size()) {
             ++node->end;
@@ -71,14 +68,13 @@ public:
         auto* node = root;
         size_t key = 0;
         while (node != nullptr && key < word.size()) {
-            auto it = node->children.find(word[key]);
-            if (it == node->children.end()) {
+            node = node->children[word[key] - 'a'];
+            if (node == nullptr) {
                 break;
             }
-            if (key == word.size() - 1 && it->second->end != 1) {
+            if (key == word.size() - 1 && node->end != 0) {
                 return true;
             }
-            node = it->second;
             ++key;
         }
         return false;
@@ -89,14 +85,13 @@ public:
         auto* node = root;
         size_t key = 0;
         while (node != nullptr && key < word.size()) {
-            auto it = node->children.find(word[key]);
-            if (it == node->children.end()) {
+            node = node->children[word[key] - 'a'];
+            if (node == nullptr) {
                 break;
             }
             if (key == word.size() - 1) {
                 return true;
             }
-            node = it->second;
             ++key;
         }
         return false;
@@ -110,13 +105,13 @@ public:
         do {
             auto* node = q.front();
             q.pop();
-            if (node != nullptr) {
-                for (const auto& p : node->children) {
-                    cout << "[" << p.first << "]" << p.second->end << " ";
-                    q.push(p.second);
+            for (size_t i = 0; i < 26; ++i) {
+                if (node->children[i] != nullptr) {
+                    cout << "[" << ('a' + i) << "]" << node->children[i]->end << " ";
+                    q.push(node->children[i]);
                 }
-                cout << endl;
             }
+            cout << endl;
         } while (!q.empty());
     }
 };
