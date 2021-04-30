@@ -49,15 +49,59 @@ private:
         insert(node, word, pos + 1);
     }
 
-    size_t count(Node* head)
+    size_t countWords(Node* head)
     {
         if (head == nullptr)
             return 0;
         size_t c = head->end;
         for (size_t i = 0; i < 26; ++i) {
-            c += count(head->leaf[i]);
+            c += countWords(head->leaf[i]);
         }
         return c;
+    }
+
+    size_t size(Node* head)
+    {
+        if (head == nullptr)
+            return 0;
+        size_t c = 1;
+        for (size_t i = 0; i < 26; ++i) {
+            c += size(head->leaf[i]);
+        }
+        return c;
+    }
+
+    void erase(Node* head, const string& word, const size_t pos)
+    {
+        if (head == nullptr)
+            return;
+        if (pos >= word.size())
+            return;
+        size_t idx = word[pos] - 'a';
+        Node* node = head->leaf[idx];
+        if (node == nullptr)
+            return;
+        if (pos + 1 == word.size()) {
+            if (node->end > 0) {
+                --node->end;
+            }
+        } else {
+            erase(node, word, pos + 1);
+        }
+        if (node->end == 0) {
+            bool all_leaves_null = true;
+            for (size_t i = 0; i < 26; ++i) {
+                if (node->leaf[i] != nullptr) {
+                    all_leaves_null = false;
+                    break;
+                }
+            }
+            if (all_leaves_null) {
+                delete node;
+                head->leaf[idx] = nullptr;
+            }
+        }
+        return;
     }
 
 public:
@@ -136,9 +180,19 @@ public:
             ++pos;
         }
         if (node != nullptr) {
-            return count(node);
+            return countWords(node);
         }
         return 0;
+    }
+
+    void erase(const string& word)
+    {
+        erase(root, word, 0);
+    }
+
+    size_t size()
+    {
+        return size(root);
     }
 
     void print() const

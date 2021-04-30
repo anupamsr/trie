@@ -5,6 +5,18 @@ using namespace std;
 int main()
 {
     Trie t;
+    t.insert("apple");
+    t.insert("apple");
+    assert(t.size() == 6);
+    assert(t.countWordsEqualTo("apple") == 2);
+    assert(t.countWordsStartingWith("app") == 2);
+    t.erase("apple");
+    assert(t.size() == 6);
+    assert(t.countWordsEqualTo("apple") == 1);
+    assert(t.countWordsStartingWith("app") == 1);
+    t.erase("apple");
+    assert(t.size() == 1);
+    assert(t.countWordsStartingWith("app") == 0);
     t.insert("the");
     t.insert("a");
     t.insert("therefore");
@@ -50,6 +62,22 @@ int main()
     assert(t.countWordsStartingWith("appl") == 1);
     assert(t.countWordsStartingWith("apple") == 1);
     assert(t.countWordsStartingWith("applee") == 0);
+    assert(t.size() == 34);
+    t.erase("app");
+    assert(t.size() == 34);
+    assert(t.countWordsEqualTo("app") == 1);
+    t.erase("app");
+    assert(t.size() == 34);
+    assert(t.countWordsEqualTo("app") == 0);
+    t.erase("app");
+    assert(t.countWordsEqualTo("app") == 0);
+    t.erase("apple");
+    assert(t.size() == 30);
+    assert(t.countWordsStartingWith("a") == 3);
+    assert(t.countWordsStartingWith("ap") == 0);
+    assert(t.countWordsStartingWith("app") == 0);
+    assert(t.countWordsStartingWith("appl") == 0);
+    assert(t.countWordsStartingWith("apple") == 0);
     cout << "All asserts passed" << endl;
     return 0;
 }
