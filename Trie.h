@@ -28,28 +28,36 @@ class Trie {
 private:
     struct Node {
         size_t end = 0;
-        Node* children[26] = { 0 }; // Only supporting lower case as of now
+        Node* leaf[26] = { 0 }; // Only supporting lower case as of now
     };
 
     Node* root;
-    void insert(Node* head, const string& word, const size_t start)
+    void insert(Node* head, const string& word, const size_t pos)
     {
-        if (start >= word.size()) {
+        if (pos > word.size()) {
             return;
+        } else if (pos == word.size()) {
+            ++head->end;
         }
 
-        auto first_char_idx = word[start] - 'a';
-
-        Node* node = head->children[first_char_idx];
+        auto idx = word[pos] - 'a';
+        Node* node = head->leaf[idx];
         if (node == nullptr) {
             node = new Node();
-            head->children[first_char_idx] = node;
+            head->leaf[idx] = node;
         }
-        if (start + 1 >= word.size()) {
-            ++node->end;
-        } else {
-            insert(node, word, start + 1);
+        insert(node, word, pos + 1);
+    }
+
+    size_t count(Node* head)
+    {
+        if (head == nullptr)
+            return 0;
+        size_t c = head->end;
+        for (size_t i = 0; i < 26; ++i) {
+            c += count(head->leaf[i]);
         }
+        return c;
     }
 
 public:
@@ -66,16 +74,16 @@ public:
     bool search(const string& word) const
     {
         auto* node = root;
-        size_t key = 0;
-        while (node != nullptr && key < word.size()) {
-            node = node->children[word[key] - 'a'];
+        size_t pos = 0;
+        while (node != nullptr && pos < word.size()) {
+            node = node->leaf[word[pos] - 'a'];
             if (node == nullptr) {
                 break;
             }
-            if (key == word.size() - 1 && node->end != 0) {
-                return true;
-            }
-            ++key;
+            ++pos;
+        }
+        if (node != nullptr && node->end != 0) {
+            return true;
         }
         return false;
     }
@@ -83,18 +91,54 @@ public:
     bool startsWith(const string& word) const
     {
         auto* node = root;
-        size_t key = 0;
-        while (node != nullptr && key < word.size()) {
-            node = node->children[word[key] - 'a'];
+        size_t pos = 0;
+        while (node != nullptr && pos < word.size()) {
+            node = node->leaf[word[pos] - 'a'];
             if (node == nullptr) {
                 break;
             }
-            if (key == word.size() - 1) {
+            if (pos == word.size() - 1) {
                 return true;
             }
-            ++key;
+            ++pos;
         }
         return false;
+    }
+
+    size_t countWordsEqualTo(const string& word)
+    {
+        Node* node = root;
+        size_t pos = 0;
+        while (node != nullptr && pos < word.size()) {
+            size_t idx = word[pos] - 'a';
+            if (node->leaf[idx] == nullptr) {
+                return 0;
+            }
+            node = node->leaf[idx];
+            ++pos;
+        }
+        if (node != nullptr) {
+            return node->end;
+        }
+        return 0;
+    }
+
+    size_t countWordsStartingWith(string prefix)
+    {
+        Node* node = root;
+        size_t pos = 0;
+        while (node != nullptr && pos < prefix.size()) {
+            size_t idx = prefix[pos] - 'a';
+            if (node->leaf[idx] == nullptr) {
+                return 0;
+            }
+            node = node->leaf[idx];
+            ++pos;
+        }
+        if (node != nullptr) {
+            return count(node);
+        }
+        return 0;
     }
 
     void print() const
@@ -106,9 +150,9 @@ public:
             auto* node = q.front();
             q.pop();
             for (size_t i = 0; i < 26; ++i) {
-                if (node->children[i] != nullptr) {
-                    cout << "[" << ('a' + i) << "]" << node->children[i]->end << " ";
-                    q.push(node->children[i]);
+                if (node->leaf[i] != nullptr) {
+                    cout << "[" << (char)('a' + i) << "]" << node->leaf[i]->end << " ";
+                    q.push(node->leaf[i]);
                 }
             }
             cout << endl;
