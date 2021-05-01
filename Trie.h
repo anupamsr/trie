@@ -3,26 +3,9 @@
 #include <iostream>
 #include <queue>
 #include <string>
+#include <vector>
 
 using namespace std;
-
-//size_t
-//find_common_prefix(const string& s, const string& t, const size_t& i)
-//{
-//    if (i >= s.size() || i >= t.size() || s[i] != t[i]) {
-//        return i;
-//    }
-
-//    return find_common_prefix(s, t, i + 1);
-//}
-
-//string
-//find_common_prefix(const string& s, const string& t)
-//{
-//    auto end = find_common_prefix(s, t, 0);
-
-//    return s.substr(0, end);
-//}
 
 class Trie {
 private:
@@ -32,51 +15,36 @@ private:
     };
 
     Node* root;
-    void insert(Node* head, const string& word, const size_t pos)
-    {
-        if (pos > word.size()) {
-            return;
-        } else if (pos == word.size()) {
-            ++head->end;
-        }
-
-        auto idx = word[pos] - 'a';
-        Node* node = head->leaf[idx];
-        if (node == nullptr) {
-            node = new Node();
-            head->leaf[idx] = node;
-        }
-        insert(node, word, pos + 1);
-    }
 
     size_t countWords(Node* head)
     {
-        if (head == nullptr)
+        if (head == nullptr) {
             return 0;
-        size_t c = head->end;
-        for (size_t i = 0; i < 26; ++i) {
-            c += countWords(head->leaf[i]);
         }
-        return c;
+        size_t count = head->end;
+        for (size_t i = 0; i < 26; ++i) {
+            count += countWords(head->leaf[i]);
+        }
+        return count;
     }
 
     size_t size(Node* head)
     {
-        if (head == nullptr)
+        if (head == nullptr) {
             return 0;
-        size_t c = 1;
-        for (size_t i = 0; i < 26; ++i) {
-            c += size(head->leaf[i]);
         }
-        return c;
+        size_t count = 1;
+        for (size_t i = 0; i < 26; ++i) {
+            count += size(head->leaf[i]);
+        }
+        return count;
     }
 
     void erase(Node* head, const string& word, const size_t pos)
     {
-        if (head == nullptr)
+        if (head == nullptr) {
             return;
-        if (pos >= word.size())
-            return;
+        }
         size_t idx = word[pos] - 'a';
         Node* node = head->leaf[idx];
         if (node == nullptr)
@@ -104,15 +72,40 @@ private:
         return;
     }
 
+    void clear(Node* head)
+    {
+        if (head == nullptr) {
+            return;
+        }
+        for (size_t i = 0; i < 26; ++i) {
+            if (head->leaf[i] != nullptr) {
+                clear(head->leaf[i]);
+            }
+        }
+        delete head;
+    }
+
 public:
     Trie()
         : root(new Node())
     {
     }
 
+    ~Trie()
+    {
+        clear(root);
+    }
+
     void insert(const string& word)
     {
-        insert(root, word, 0);
+        Node* node = root;
+        for (size_t i = 0; i < word.size(); ++i) {
+            if (node->leaf[word[i] - 'a'] == nullptr) {
+                node->leaf[word[i] - 'a'] = new Node();
+            }
+            node = node->leaf[word[i] - 'a'];
+        }
+        ++node->end;
     }
 
     bool search(const string& word) const
@@ -198,18 +191,57 @@ public:
     void print() const
     {
         cout << "[root]" << endl;
-        queue<Node*> q;
-        q.push(root);
-        do {
-            auto* node = q.front();
-            q.pop();
-            for (size_t i = 0; i < 26; ++i) {
-                if (node->leaf[i] != nullptr) {
-                    cout << "[" << (char)('a' + i) << "]" << node->leaf[i]->end << " ";
-                    q.push(node->leaf[i]);
+        print({ root });
+    }
+
+    void print(const vector<Node*>& nodes) const
+    {
+        vector<vector<char>> leaves(nodes.size());
+        size_t total_leaves = 0;
+        for (size_t i = 0; i < leaves.size(); ++i) {
+            for (size_t j = 0; j < 26; ++j) {
+                if (nodes[i]->leaf[j] != nullptr) {
+                    leaves[i].emplace_back((char)('a' + j));
+                    ++total_leaves;
                 }
             }
-            cout << endl;
-        } while (!q.empty());
+        }
+        if (total_leaves == 0) {
+            return;
+        }
+        for (size_t i = 0; i < leaves.size(); ++i) {
+            if (leaves[i].size() == 1) {
+                cout << "|";
+            } else {
+                for (size_t j = 0; j < leaves[i].size(); ++j) {
+                    cout << "-";
+                }
+            }
+            cout << " ";
+        }
+        cout << endl;
+
+        for (size_t i = 0; i < leaves.size(); ++i) {
+            for (size_t j = 0; j < leaves[i].size(); ++j) {
+                cout << "|";
+            }
+            cout << " ";
+        }
+        cout << endl;
+
+        for (size_t i = 0; i < leaves.size(); ++i) {
+            for (size_t j = 0; j < leaves[i].size(); ++j) {
+                cout << leaves[i][j];
+            }
+            cout << " ";
+        }
+        cout << endl;
+        vector<Node*> down;
+        for (size_t i = 0; i < nodes.size(); ++i) {
+            for (size_t j = 0; j < leaves[i].size(); ++j) {
+                down.emplace_back(nodes[i]->leaf[leaves[i][j] - 'a']);
+            }
+        }
+        print(down);
     }
 };
