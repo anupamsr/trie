@@ -2,9 +2,20 @@
 #include <cassert>
 using namespace std;
 
-int main()
+int main(int argc, char * argv[])
 {
     Trie t;
+    if (argc > 1)
+    {
+        for (int i = 1; i < argc; ++i)
+        {
+            t.insert(argv[i]);
+        }
+        t.print();
+        return 0;
+    }
+
+    // Test mode
     t.insert("apple");
     t.insert("apple");
     assert(t.size() == 6);

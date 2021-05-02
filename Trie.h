@@ -217,7 +217,7 @@ public:
                     cout << "-";
                 }
             }
-            cout << " ";
+            cout << ".";
         }
         cout << endl;
 
